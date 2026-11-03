@@ -48,7 +48,7 @@ No deletion was executed while implementing these pages.
 
 ## Build and preview locally
 
-From `nouba-agriflow/frontend`:
+From `MACHINATI/frontend`:
 
 ```bash
 npm ci
@@ -67,8 +67,8 @@ Open each route directly, refresh it, and follow the footer links:
 1. Build using the commands above.
 2. In Netlify, use its manual deployment upload and upload **only `frontend/dist`**.
    Alternatively connect the repository, set the base directory to
-   `nouba-agriflow/frontend` (or `frontend` if the repository root is
-   `nouba-agriflow`), build command `npm run build`, publish directory `dist`.
+   `MACHINATI/frontend` (or `frontend` if the repository root is
+   `MACHINATI`), build command `npm run build`, publish directory `dist`.
 3. `public/_redirects` is copied to `dist/_redirects` and rewrites the three public
    URLs to the React entry point. Keep it in the deployed folder so direct links
    and refreshes work. Other hosts need equivalent rewrites.

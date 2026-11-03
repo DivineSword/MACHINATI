@@ -11,14 +11,14 @@ from .whatsapp import verify_signature
 from .service import handle_message
 
 logging.basicConfig(level=logging.INFO)
-log = logging.getLogger("nouba")
+log = logging.getLogger("machinati")
 
 @asynccontextmanager
 async def lifespan(app):
     init_db()
     yield
 
-app = FastAPI(title="Nouba × AgriFlow API", lifespan=lifespan)
+app = FastAPI(title="MACHINATI API", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=config.CORS_ORIGINS, allow_methods=["GET","POST","PATCH"], allow_headers=["*"])
 app.include_router(requests_router)
 app.include_router(machines_router)

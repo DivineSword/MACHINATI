@@ -94,7 +94,7 @@ export function RequestsDashboard() {
       <aside>
         <div className="brand">
           <span className="logo">✳</span>
-          <span>Nouba <em>×</em> AgriFlow<small>Gestion coopérative</small></span>
+          <span>MACHINATI<small>Gestion coopérative</small></span>
         </div>
         <div className="nav">
           <button className={view === 'requests' ? 'active' : ''} onClick={() => setView('requests')}>
@@ -107,7 +107,7 @@ export function RequestsDashboard() {
           <div><Users size={19} /> Agriculteurs <small>Bientôt</small></div>
           <div><MessageCircle size={19} /> WhatsApp <small>Connecteur</small></div>
         </div>
-        <div className="sidefoot">Prototype MVP · Nouba 2026</div>
+        <div className="sidefoot">Prototype MVP · MACHINATI 2026</div>
       </aside>
 
       <main>

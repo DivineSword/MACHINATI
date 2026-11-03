@@ -1,4 +1,4 @@
-# Nouba × AgriFlow — WhatsApp-first MVP
+# MACHINATI — WhatsApp-first MVP
 
 Farmers communicate via the official WhatsApp Cloud API (text or voice). Audio is transcribed, an LLM extracts structured fields, and a cooperative dashboard reviews confirmed requests. **This is a development starter, not a production-ready booking platform.**
 
