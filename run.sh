@@ -7,22 +7,45 @@ VITE="$ROOT_DIR/frontend/node_modules/.bin/vite"
 PYTHON="$ROOT_DIR/.venv/bin/python"
 
 if ! command -v node >/dev/null 2>&1; then
-  printf 'Node.js is required to run Vite. Install it with: sudo dnf install nodejs npm\n' >&2
+  printf 'Node.js 20+ is required. Install Node.js and npm for your operating system, then run this script again.\n' >&2
   exit 1
 fi
 
-if [[ ! -x "$UVICORN" ]]; then
-  printf 'Missing %s. From the project root, run: python3 -m venv .venv && .venv/bin/python -m pip install -r backend/requirements.txt\n' "$UVICORN" >&2
+if ! command -v npm >/dev/null 2>&1; then
+  printf 'npm is required. Install Node.js 20+ (which includes npm), then run this script again.\n' >&2
   exit 1
+fi
+
+BASE_PYTHON="$(command -v python3 || command -v python || true)"
+if [[ -z "$BASE_PYTHON" ]]; then
+  printf 'Python 3.10+ is required. Install Python, then run this script again.\n' >&2
+  exit 1
+fi
+
+if [[ ! -x "$PYTHON" ]]; then
+  printf 'Creating Python environment...\n'
+  "$BASE_PYTHON" -m venv "$ROOT_DIR/.venv"
+fi
+
+if ! "$PYTHON" -m pip --version >/dev/null 2>&1; then
+  if ! "$PYTHON" -m ensurepip --upgrade >/dev/null 2>&1; then
+    printf 'pip is unavailable in .venv. Recreate it with Python 3.10+ and run this script again.\n' >&2
+    exit 1
+  fi
+fi
+
+if ! "$PYTHON" -c 'import fastapi, uvicorn' >/dev/null 2>&1; then
+  printf 'Installing backend dependencies...\n'
+  "$PYTHON" -m pip install -r "$ROOT_DIR/backend/requirements.txt"
 fi
 
 if [[ ! -x "$VITE" ]]; then
-  printf 'Missing %s. Install frontend dependencies with npm ci first.\n' "$VITE" >&2
-  exit 1
+  printf 'Installing frontend dependencies...\n'
+  npm ci --prefix "$ROOT_DIR/frontend"
 fi
 
-if ! "$PYTHON" -c 'import fastapi' >/dev/null 2>&1; then
-  printf 'FastAPI is missing from .venv. From the project root, install backend requirements with: .venv/bin/python -m pip install -r backend/requirements.txt\n' >&2
+if [[ ! -x "$UVICORN" ]]; then
+  printf 'Uvicorn was not installed from backend/requirements.txt. Check the installation output above.\n' >&2
   exit 1
 fi
 
