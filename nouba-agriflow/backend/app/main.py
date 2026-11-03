@@ -4,7 +4,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from . import config
-from .db import connect, init_db
+from .db import init_db
+from .routes.machines import router as machines_router
+from .routes.requests import router as requests_router
 from .whatsapp import verify_signature
 from .service import handle_message
 
@@ -18,6 +20,8 @@ async def lifespan(app):
 
 app = FastAPI(title="Nouba × AgriFlow API", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=config.CORS_ORIGINS, allow_methods=["GET","POST","PATCH"], allow_headers=["*"])
+app.include_router(requests_router)
+app.include_router(machines_router)
 
 @app.get("/health")
 def health(): return {"status":"ok"}
@@ -48,25 +52,3 @@ async def receive_webhook(request: Request, tasks: BackgroundTasks):
             messages.extend(change.get("value", {}).get("messages", []))
     if messages: tasks.add_task(process_messages, messages)
     return {"received":True}
-
-@app.get("/api/requests")
-def list_requests():
-    with connect() as con:
-        rows = con.execute("SELECT * FROM requests ORDER BY id DESC LIMIT 200").fetchall()
-    return [{**dict(row),"payload":json.loads(row["payload"])} for row in rows]
-
-@app.patch("/api/requests/{request_id}/status")
-def change_status(request_id: int, status: str):
-    if status not in ("pending_review","approved","rejected","completed"):
-        raise HTTPException(400,"Invalid status")
-    with connect() as con:
-        row = con.execute("SELECT status FROM requests WHERE id=?", (request_id,)).fetchone()
-        if not row: raise HTTPException(404,"Request not found")
-        if row["status"] == "draft": raise HTTPException(409,"Draft must be confirmed first")
-        con.execute("UPDATE requests SET status=?,updated_at=CURRENT_TIMESTAMP WHERE id=?",(status,request_id))
-    return {"id":request_id,"status":status}
-
-@app.get("/api/machines")
-def machines():
-    with connect() as con:
-        return [dict(row) for row in con.execute("SELECT * FROM machines ORDER BY id DESC")]

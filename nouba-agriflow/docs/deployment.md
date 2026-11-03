@@ -83,9 +83,13 @@ Google Gemini secrets belong in a frontend environment variable or client bundle
 
 The Vite development `/api` proxy is not included in a static deployment. The
 public information pages work independently, but the dashboard at `/` requires
-separate API hosting and routing. Do not expose the current unauthenticated API
-or add a public proxy to it merely to publish these pages. Backend authentication
-and deployment are separate work; this change does not alter the webhook URL.
+separate API hosting and routing. Set `VITE_API_BASE_URL` in the frontend build
+environment to the backend origin (for example, `https://api.example.com`); leave
+it unset when the frontend and API share an origin. Configure the backend's
+`CORS_ORIGINS` with the exact deployed frontend origin when they are hosted
+separately. Do not expose the current unauthenticated API or add a public proxy
+to it merely to publish these pages. Backend authentication and deployment are
+separate work; this change does not alter the webhook URL.
 
 Official deployment references:
 

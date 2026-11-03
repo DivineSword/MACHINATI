@@ -2,10 +2,12 @@
 
 ## Start
 
+Use the shared project-root virtual environment described in the root README.
+From the repository root, create it once and install backend requirements:
+
 ```bash
-cd nouba-agriflow/backend
-source .venv/bin/activate
-pip install -r requirements.txt
+python3 -m venv .venv
+.venv/bin/python -m pip install -r backend/requirements.txt
 ```
 
 Edit the existing `backend/.env` locally. Do **not** copy `.env.example` over a
@@ -28,7 +30,8 @@ Existing old AI settings in your private `.env` are ignored; the implementation
 does not edit or remove private settings.
 
 ```bash
-uvicorn app.main:app --reload --workers 1
+cd backend
+../.venv/bin/uvicorn app.main:app --reload --workers 1
 ```
 
 Keep the existing ngrok command, URL registration, verification token, app secret,
@@ -39,7 +42,8 @@ in-process. A durable queue/ordering strategy is needed before scaling workers.
 ## Automated tests
 
 ```bash
-python -m unittest discover -s tests -v
+cd backend
+../.venv/bin/python -m unittest discover -s tests -v
 ```
 
 Tests use temporary SQLite databases and mock network boundaries. They cover

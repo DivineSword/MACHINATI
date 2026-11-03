@@ -1,7 +1,17 @@
 .env
+.env.*
+!.env.example
 __pycache__/
 *.pyc
 *.db
+*.sqlite
+*.sqlite3
 node_modules/
 dist/
 .venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.tsbuildinfo
