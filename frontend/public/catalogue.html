@@ -179,7 +179,7 @@
     .bottom-cta h2 { margin: 0; font-size: 21px; font-weight: 600; }
     .bottom-cta p { margin: 6px 0 0; color: var(--muted); font-size: 11px; }
     .footer { background: var(--green-dark); color: #d7dfd1; }
-    .footer-main { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 35px; padding: 35px 0; }
+    .footer-main { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 35px; padding: 35px 0; }
     .footer .brand { color: white; }
     .footer-brand p { max-width: 310px; color: #aeb9a9; font-size: 11px; line-height: 1.8; }
     .footer h3 { margin: 4px 0 13px; color: var(--lime); font-size: 10px; letter-spacing: .7px; text-transform: uppercase; }
@@ -310,6 +310,12 @@
     .category-chip:hover, .category-chip.active { border-color:#fff; background:#fff; color:var(--ink); }
     .trust-row { margin-top:15px; border:0; border-radius:7px; padding:18px 20px; background:#fff; }
     .trust-symbol { background:var(--green-pale); color:var(--green); }
+    .backend-requests { display:grid; gap:0; margin:9px 0 0; padding:0; list-style:none; }
+    .backend-requests li { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0; border-top:1px solid var(--line); }
+    .backend-requests strong, .backend-requests small { display:block; }
+    .backend-requests strong { font-size:11px; }
+    .backend-requests small { margin-top:3px; color:var(--muted); font-size:9px; }
+    .backend-requests li > span:last-child { flex:0 0 auto; color:var(--green); font-size:9px; font-weight:700; }
     .listing-card { border-radius:7px; box-shadow:0 4px 16px rgba(32,33,31,.05); }
     .listing-card:hover { box-shadow:0 12px 25px rgba(32,33,31,.1); }
     .availability { border-radius:999px; }
@@ -343,9 +349,9 @@
   <header class="wrap nav">
     <a class="brand" href="#accueil" aria-label="Machinati, accueil"><span class="brand-mark">M.</span><span>MACHINATI<small>La location agricole</small></span></a>
     <nav class="nav-links" id="navLinks" aria-label="Navigation principale">
-      <a href="#materiel">Trouver du matériel</a>
-      <a href="#fonctionnement">Comment ça marche</a>
-      <a href="#suivi">Suivi IoT</a>
+      <a href="#materiel">Catalogue</a>
+      <a id="cooperativeLink" href="/cooperative.html">Coopérative</a>
+      <a id="operationsLink" href="/equipe-machinati.html">Opérations</a>
     </nav>
     <div class="nav-actions">
       <button class="mobile-menu" id="mobileMenu" type="button" aria-label="Ouvrir le menu" aria-expanded="false">☰</button>
@@ -417,28 +423,6 @@
       </div>
     </section>
 
-    <section class="wrap iot-section" id="suivi" aria-labelledby="iotTitle">
-      <div class="iot-layout">
-        <div class="iot-copy">
-          <span class="section-kicker">La confiance, ça se mesure</span>
-          <h2 id="iotTitle">Chaque heure compte. <em>Vraiment.</em></h2>
-            <p>Les données apparaîtront dès que les machines transmettront leur télémétrie.</p>
-          <ul class="iot-points">
-            <li><span class="iot-check">·</span> Heures moteur</li>
-            <li><span class="iot-check">·</span> Localisation</li>
-            <li><span class="iot-check">·</span> Entretien</li>
-          </ul>
-        </div>
-        <div class="iot-dashboard" aria-label="Disponibilité du suivi connecté">
-          <div class="dash-head"><span class="dash-title">Suivi de la machine</span><span class="sensor-status">API IoT non disponible</span></div>
-          <div class="dash-content">
-            <div class="dash-machine"><span class="machine-thumb">▰</span><span><strong>Télémétrie</strong><span>Aucune source de données connectée</span></span></div>
-            <p class="chart-note">Aucune donnée disponible</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <section class="wrap section" id="fonctionnement" aria-labelledby="stepsTitle" style="padding-top:12px">
       <div class="section-head"><div><span class="section-kicker">Simple du premier vocal au dernier sillon</span><h2 id="stepsTitle">Comment ça <em>marche</em></h2></div></div>
       <div class="steps">
@@ -457,8 +441,9 @@
   <footer class="footer">
     <div class="wrap footer-main">
       <div class="footer-brand"><a class="brand" href="#accueil"><span class="brand-mark">M.</span><span>MACHINATI<small>La location agricole</small></span></a><p>Une plateforme de location pensée pour les agriculteurs marocains. Du matériel mieux partagé, des saisons qui avancent.</p></div>
-      <div><h3>La plateforme</h3><div class="footer-links"><a href="#materiel">Trouver du matériel</a><a href="#fonctionnement">Comment ça marche</a><a href="#suivi">Le suivi IoT</a></div></div>
+      <div><h3>La plateforme</h3><div class="footer-links"><a href="#materiel">Trouver du matériel</a><a href="#fonctionnement">Comment ça marche</a></div></div>
       <div><h3>Pour les coopératives</h3><div class="footer-links"><a href="#materiel" data-modal="owner">Inscrire une coopérative</a><a href="#fonctionnement">La location expliquée</a><a href="#accueil">Nous contacter</a></div></div>
+      <div><h3>Informations légales</h3><div class="footer-links"><a href="/privacy">Confidentialité</a><a href="/terms">Conditions d’utilisation</a><a href="/data-deletion">Suppression des données</a></div></div>
     </div>
     <div class="wrap footer-bottom"><span>© 2026 Machinati · Catalogue agricole</span><span>Disponibilités issues des données communiquées par les coopératives.</span></div>
   </footer>
@@ -481,6 +466,10 @@
     let activeCategory = "";
     let noticeTimer;
     const apiBaseUrl = new URLSearchParams(window.location.search).get("apiBaseUrl") || "";
+    document.getElementById("cooperativeLink").href = "/?view=cooperative";
+    document.getElementById("cooperativeLink").target = "_top";
+    document.getElementById("operationsLink").href = "/?view=operations";
+    document.getElementById("operationsLink").target = "_top";
 
     const categoryLabels = {
       tractor: "Tracteur",
@@ -515,7 +504,8 @@
         const response = await fetch(`${apiBaseUrl}/api/machines`);
         if (!response.ok) throw new Error(`Erreur API (${response.status})`);
         const rows = await response.json();
-        machines = rows.filter((machine) => Boolean(machine.available)).map((machine) => {
+        const availableRows = rows.filter((machine) => Boolean(machine.available));
+        machines = availableRows.map((machine) => {
           const category = categoryLabels[machine.machine_type] || machine.machine_type;
           return {
             id: machine.id,

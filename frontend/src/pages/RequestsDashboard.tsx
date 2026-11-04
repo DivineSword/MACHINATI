@@ -7,11 +7,11 @@ import {
   MessageCircle,
   RefreshCw,
   CheckCircle2,
+  ShieldCheck,
   XCircle,
   Clock,
   Search,
 } from 'lucide-react';
-import { LegalFooter } from './LegalPages';
 import { apiRequest, errorMessage } from '../shared/api';
 import type { MachineRow, RequestRow } from '../shared/types';
 
@@ -32,6 +32,7 @@ export function RequestsDashboard() {
   const [view, setView] = useState<DashboardView>('requests');
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [reviewer, setReviewer] = useState('');
   const [busy, setBusy] = useState<number | null>(null);
 
   async function load() {
@@ -77,10 +78,35 @@ export function RequestsDashboard() {
     }
   }
 
+  async function verifyUrgency(id: number) {
+    if (!reviewer.trim()) {
+      setErrors(current => ({ ...current, requests: 'Saisissez le nom du vérificateur.' }));
+      return;
+    }
+    setBusy(id);
+    try {
+      await apiRequest(`/api/requests/${id}/urgency-verification`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reviewer: reviewer.trim() }),
+      });
+      await load();
+    } catch (error) {
+      setErrors(current => ({ ...current, requests: errorMessage(error) }));
+    } finally {
+      setBusy(null);
+    }
+  }
+
   const visibleRequests = items.filter(request =>
     (filter === 'all' || request.status === filter) &&
     `${request.farmer_phone} ${JSON.stringify(request.payload)}`.toLowerCase().includes(search.toLowerCase()),
   );
+  const pendingRequests = visibleRequests.filter(request => request.status === 'pending_review');
+  const [priorityLeader, nextPriority] = pendingRequests;
+  const scoreDifference = priorityLeader && nextPriority
+    ? priorityLeader.priority_score - nextPriority.priority_score
+    : null;
   const visibleMachines = machines.filter(machine =>
     `${machine.name} ${machine.machine_type} ${machine.location || ''}`.toLowerCase().includes(search.toLowerCase()),
   );
@@ -134,8 +160,9 @@ export function RequestsDashboard() {
 
             <section className="panel">
               <div className="paneltop">
-                <div><h2>Toutes les demandes</h2><p className="muted">Les brouillons ne peuvent pas être approuvés.</p></div>
+                <div><h2>Toutes les demandes</h2><p className="muted">Simulation de priorité · validation humaine requise · aucune réservation confirmée.</p></div>
                 <div className="controls">
+                  <label className="reviewer-input">Vérifié par <input maxLength={80} placeholder="Nom du vérificateur" value={reviewer} onChange={event => setReviewer(event.target.value)} /></label>
                   <label className="search"><Search size={16} /><input placeholder="Rechercher..." value={search} onChange={event => setSearch(event.target.value)} /></label>
                   <select value={filter} onChange={event => setFilter(event.target.value)}>
                     <option value="all">Tous les statuts</option>
@@ -144,9 +171,29 @@ export function RequestsDashboard() {
                 </div>
               </div>
               {errors.requests && <div className="error">{errors.requests} — Vérifiez la connexion au backend FastAPI.</div>}
+              {priorityLeader && nextPriority && (
+                <div className="paneltop" aria-live="polite">
+                  <div>
+                    <h2>Comparaison des priorités à examiner</h2>
+                    <p className="muted">
+                      {priorityLeader.payload.location || 'Localité à confirmer'} ({priorityLeader.priority_score} pts)
+                      {' · '}
+                      {nextPriority.payload.location || 'Localité à confirmer'} ({nextPriority.priority_score} pts)
+                    </p>
+                    <p className="muted">
+                      {scoreDifference && scoreDifference > 0
+                        ? `La première demande a ${scoreDifference} points de priorité en plus. `
+                        : scoreDifference === 0
+                          ? 'Score égal; le classement secondaire départage les demandes. '
+                          : 'Le score demande une vérification du classement. '}
+                      {priorityLeader.priority_reason}
+                    </p>
+                  </div>
+                </div>
+              )}
               <div className="tablewrap">
                 <table>
-                  <thead><tr><th>AGRICULTEUR</th><th>MACHINE / OPÉRATION</th><th>SURFACE</th><th>LOCALITÉ</th><th>DATE SOUHAITÉE</th><th>STATUT</th><th>ACTIONS</th></tr></thead>
+                  <thead><tr><th>AGRICULTEUR</th><th>MACHINE / OPÉRATION</th><th>SURFACE</th><th>LOCALITÉ</th><th>DATE SOUHAITÉE</th><th>ADÉQUATION MATÉRIEL</th><th>URGENCE</th><th>PRIORITÉ</th><th>STATUT</th><th>ACTIONS</th></tr></thead>
                   <tbody>
                     {visibleRequests.map(request => (
                       <tr key={request.id}>
@@ -155,6 +202,35 @@ export function RequestsDashboard() {
                         <td>{request.payload.area_hectares ?? '—'} ha</td>
                         <td>{request.payload.location || '—'}</td>
                         <td>{request.payload.preferred_date || request.payload.preferred_date_text || '—'}</td>
+                        <td>
+                          <div className="machine-fit">
+                            <span className={`machine-fit-badge ${request.machine_fit}`}>
+                              {request.machine_fit === 'match' ? 'Machine fit' : request.machine_fit === 'transport_review' ? 'Transport à vérifier' : request.machine_fit === 'date_review' ? 'Date à vérifier' : request.machine_fit === 'unavailable' ? 'Non disponible' : 'À préciser'}
+                            </span>
+                            <small>{request.machine_fit_reason}</small>
+                            {request.matching_machines.map(machine => (
+                              <small key={machine.id}>{machine.name} · {machine.location || 'Localité à confirmer'}{machine.compatibility_notes ? ` · ${machine.compatibility_notes}` : ''}</small>
+                            ))}
+                          </div>
+                        </td>
+                        <td>
+                          <div className="urgency-review">
+                            <span className={`urgency-badge ${request.payload.urgency_level || 'unknown'}`}>
+                              {request.payload.urgency_level === 'critical' ? 'Critique' : request.payload.urgency_level === 'urgent' ? 'Urgente' : request.payload.urgency_level === 'normal' ? 'Normale / flexible' : 'À préciser'}
+                            </span>
+                            {request.payload.urgency_reason && <small>{request.payload.urgency_reason}</small>}
+                            {request.payload.urgency_level && ['urgent', 'critical'].includes(request.payload.urgency_level) && request.status === 'pending_review' && (
+                              request.payload.verified_by ? (
+                                <small className="verified-by"><ShieldCheck size={13} /> Validée par {request.payload.verified_by}</small>
+                              ) : (
+                                <button className="verify-urgency" disabled={busy === request.id || !reviewer.trim()} onClick={() => void verifyUrgency(request.id)}>
+                                  <ShieldCheck size={14} /> Valider l'urgence
+                                </button>
+                              )
+                            )}
+                          </div>
+                        </td>
+                        <td><strong className="priority-score">{request.priority_score}</strong><small>{request.priority_reason}</small></td>
                         <td><span className={`status ${request.status}`}>{statusText[request.status] || request.status}</span></td>
                         <td>
                           {request.status === 'pending_review' ? (
@@ -182,19 +258,23 @@ export function RequestsDashboard() {
 
             <section className="panel">
               <div className="paneltop">
-                <div><h2>Matériel de la coopérative</h2><p className="muted">Disponibilités et tarifs horaires</p></div>
+                <div><h2>Matériel de la coopérative</h2><p className="muted">Disponibilité illustrative · tarifs horaires indicatifs</p></div>
                 <label className="search"><Search size={16} /><input placeholder="Rechercher..." value={search} onChange={event => setSearch(event.target.value)} /></label>
               </div>
               {errors.machines && <div className="error">{errors.machines} — Vérifiez la connexion au backend FastAPI.</div>}
               <div className="tablewrap">
                 <table>
-                  <thead><tr><th>MATÉRIEL</th><th>TYPE</th><th>LOCALITÉ</th><th>TARIF HORAIRE</th><th>DISPONIBILITÉ</th></tr></thead>
+                  <thead><tr><th>MATÉRIEL</th><th>TYPE</th><th>LOCALITÉ</th><th>PROPRIÉTAIRE</th><th>USAGE PROPRE</th><th>FENÊTRE DE DISPONIBILITÉ</th><th>NOTES</th><th>TARIF HORAIRE</th><th>DISPONIBILITÉ</th></tr></thead>
                   <tbody>
                     {visibleMachines.map(machine => (
                       <tr key={machine.id}>
                         <td><b>{machine.name}</b></td>
                         <td>{machine.machine_type}</td>
                         <td>{machine.location || '—'}</td>
+                        <td>{machine.owner_type === 'partner' ? 'Partenaire' : 'Coopérative'}</td>
+                        <td>{machine.reserved_for_own_use ? 'Réservé' : 'Non réservé'}</td>
+                        <td>{machine.available_from || machine.available_to ? `${machine.available_from || '…'} → ${machine.available_to || '…'}` : 'À confirmer'}</td>
+                        <td>{machine.compatibility_notes || '—'}</td>
                         <td>{machine.hourly_rate == null ? '—' : `${machine.hourly_rate} / h`}</td>
                         <td><span className={`status ${machine.available ? 'approved' : 'rejected'}`}>{machine.available ? 'Disponible' : 'Indisponible'}</span></td>
                       </tr>
@@ -206,8 +286,6 @@ export function RequestsDashboard() {
             </section>
           </>
         )}
-
-        <LegalFooter />
       </main>
     </div>
   );

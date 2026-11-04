@@ -314,6 +314,14 @@
 
   <script>
     const apiBaseUrl = new URLSearchParams(window.location.search).get("apiBaseUrl") || "";
+    if (new URLSearchParams(window.location.search).get("panel") === "overview") {
+      const requestWorkbench = document.getElementById("demandes");
+      const requestsLink = document.querySelector('.nav-links a[href="#demandes"]');
+      requestWorkbench.hidden = true;
+      requestWorkbench.style.display = 'none';
+      requestsLink.hidden = true;
+      requestsLink.style.display = 'none';
+    }
     const statusLabels = { draft: "Brouillon", pending_review: "À traiter", approved: "Approuvée", rejected: "Refusée", completed: "Terminée" };
     let requests = [];
     let machines = [];
