@@ -285,6 +285,52 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
     }
+    :root { --paper:#f3f3f1; --white:#fff; --ink:#20211f; --muted:#70736f; --green:#24583d; --green-dark:#193d2c; --green-pale:#e8eee5; --lime:#d3e075; --orange:#d66b43; --line:#e6e5e2; }
+    .topline { display:none; }
+    .nav { height:66px; }
+    .brand-mark { border-radius:50%; background:var(--green); color:#fff; }
+    .nav-links { color:#4d504d; }
+    .hero { min-height:360px; border-radius:8px 8px 0 0; background:var(--green-dark); }
+    .hero-copy { padding:38px 24px 40px 44px; }
+    .eyebrow { color:#ffe3c9; }
+    .eyebrow-dot { background:var(--lime); }
+    .hero h1 { font-weight:700; }
+    .hero h1 em { color:var(--lime); }
+    .hero-copy > p { color:#fff1e9; }
+    .hero-photo { min-height:360px; background:#64744d; }
+    .hero-photo::before { background:linear-gradient(90deg,rgba(25,61,44,.2),transparent 35%),linear-gradient(0deg,rgba(20,36,23,.22),transparent 55%); }
+    .search-panel { grid-template-columns:1.3fr 1fr 1fr auto; gap:9px; margin-top:0; padding:16px 18px 18px; border:0; border-radius:0 0 8px 8px; background:var(--green); box-shadow:0 12px 28px rgba(35,47,30,.12); }
+    .search-intent { grid-column:1 / -1; display:flex; justify-content:center; gap:9px; }
+    .intent-option { min-height:42px; border:1px solid rgba(255,255,255,.55); border-radius:7px; padding:0 20px; background:rgba(255,255,255,.12); color:#fff; font-size:13px; font-weight:700; cursor:pointer; }
+    .intent-option.active { border-color:#fff; background:#fff; color:var(--ink); }
+    .search-field { min-height:55px; border:0; border-radius:6px; background:#fff; }
+    .search-panel .button { min-height:55px; margin:0; border-radius:7px; background:var(--lime); color:#292817; }
+    .categories { grid-column:1 / -1; flex-wrap:wrap; gap:7px; overflow:visible; padding:2px 0 0; }
+    .category-chip { border-color:rgba(255,255,255,.28); border-radius:999px; background:rgba(255,255,255,.14); color:#fff; }
+    .category-chip:hover, .category-chip.active { border-color:#fff; background:#fff; color:var(--ink); }
+    .trust-row { margin-top:15px; border:0; border-radius:7px; padding:18px 20px; background:#fff; }
+    .trust-symbol { background:var(--green-pale); color:var(--green); }
+    .listing-card { border-radius:7px; box-shadow:0 4px 16px rgba(32,33,31,.05); }
+    .listing-card:hover { box-shadow:0 12px 25px rgba(32,33,31,.1); }
+    .availability { border-radius:999px; }
+    @media (max-width:900px) { .hero-copy { padding-left:30px; } }
+    @media (max-width:640px) {
+      .hero { display:flex; flex-direction:column; min-height:unset; }
+      .hero-photo { order:0; min-height:155px; height:155px; }
+      .hero-copy { order:1; padding:22px 20px 20px; }
+      .hero h1 { max-width:420px; margin:10px 0; font-size:36px; line-height:1.06; }
+      .hero-copy > p { margin:9px 0 13px; }
+      .search-panel { grid-template-columns:1fr 1fr; gap:8px; margin-top:0; padding:12px; }
+      .search-intent { gap:7px; }
+      .intent-option { flex:1; min-height:40px; padding-inline:8px; font-size:11px; }
+      .search-field { min-height:49px; }
+      .search-field:first-child { grid-column:1 / -1; border:0; padding:6px 10px; }
+      .search-panel .button { grid-column:1 / -1; min-height:45px; }
+      .categories { gap:6px; padding-top:3px; }
+      .category-chip { padding:8px 10px; font-size:10px; }
+      .trust-row { margin-top:12px; padding:15px 12px; }
+      .section { padding-top:38px; }
+    }
   </style>
 </head>
 <body>
@@ -311,10 +357,9 @@
       <div class="hero-copy">
         <span class="eyebrow"><i class="eyebrow-dot"></i> La terre n'attend pas</span>
         <h1 id="heroTitle">Le bon matériel.<br>Au bon <em>moment.</em></h1>
-        <p>Tracteur, moissonneuse ou pompe : trouvez des machines proposées par des coopératives partenaires. Machinati facilite la réservation et le suivi des heures réellement travaillées.</p>
+        <p>Trouvez du matériel agricole proposé par les coopératives près de chez vous.</p>
         <div class="hero-cta">
           <a class="button button-cream" href="#materiel">Explorer les machines <span aria-hidden="true">→</span></a>
-          <span class="hero-note"><b>◉</b> Réservation aussi par message vocal</span>
         </div>
       </div>
       <div class="hero-photo">
@@ -324,24 +369,14 @@
     </section>
 
     <form class="wrap search-panel" id="searchForm" role="search">
+      <div class="search-intent" aria-label="Type de recherche">
+        <button class="intent-option active" type="button">Parcourir</button>
+        <button class="intent-option" type="button" data-modal="voice">Demander</button>
+      </div>
       <div class="search-field"><span class="field-symbol" aria-hidden="true">⌕</span><div style="flex:1;min-width:0"><label for="searchQuery">Quel matériel vous faut-il ?</label><input id="searchQuery" type="search" placeholder="Ex. tracteur, moissonneuse…"></div></div>
       <div class="search-field"><span class="field-symbol" aria-hidden="true">⌖</span><div style="flex:1;min-width:0"><label for="searchCity">Votre localité</label><select id="searchCity"><option value="">Toutes les localités</option></select></div></div>
       <div class="search-field"><span class="field-symbol" aria-hidden="true">▦</span><div style="flex:1;min-width:0"><label for="searchType">Type de machine</label><select id="searchType"><option value="">Toutes les machines</option><option value="Tracteur">Tracteur</option><option value="Moissonneuse">Moissonneuse</option><option value="Irrigation">Irrigation</option><option value="Préparation du sol">Préparation du sol</option><option value="Transport">Transport</option></select></div></div>
       <button class="button button-primary" type="submit">Rechercher <span aria-hidden="true">→</span></button>
-    </form>
-
-    <div class="wrap trust-row" aria-label="Avantages">
-      <div class="trust-item"><span class="trust-symbol">✓</span> Louez, ne vous endettez pas</div>
-      <div class="trust-item"><span class="trust-symbol">◷</span> Paiement calculé à l'usage</div>
-      <div class="trust-item"><span class="trust-symbol">⌖</span> Des machines près de vous</div>
-      <div class="trust-item"><span class="trust-symbol">◉</span> Réservation par message vocal</div>
-    </div>
-
-    <section class="wrap section" id="materiel" aria-labelledby="listingsTitle">
-      <div class="section-head">
-        <div><span class="section-kicker">La location, près de chez vous</span><h2 id="listingsTitle">Du matériel prêt à <em>travailler</em></h2></div>
-        <p>Choisissez une machine, puis indiquez vos dates.<br>Le tarif s'adapte à la durée de location.</p>
-      </div>
       <div class="categories" id="categoryFilters" aria-label="Filtrer par type de machine">
         <button class="category-chip active" type="button" data-category="">Tout le matériel</button>
         <button class="category-chip" type="button" data-category="Tracteur">Tracteurs</button>
@@ -350,15 +385,28 @@
         <button class="category-chip" type="button" data-category="Préparation du sol">Préparation du sol</button>
         <button class="category-chip" type="button" data-category="Transport">Transport</button>
       </div>
+    </form>
+
+    <div class="wrap trust-row" aria-label="Avantages">
+      <div class="trust-item"><span class="trust-symbol">✓</span> Coopératives locales</div>
+      <div class="trust-item"><span class="trust-symbol">◷</span> Tarifs transparents</div>
+      <div class="trust-item"><span class="trust-symbol">⌖</span> Près de chez vous</div>
+      <div class="trust-item"><span class="trust-symbol">◉</span> Demande WhatsApp</div>
+    </div>
+
+    <section class="wrap section" id="materiel" aria-labelledby="listingsTitle">
+      <div class="section-head">
+        <div><span class="section-kicker">Catalogue</span><h2 id="listingsTitle">Machines à louer</h2></div>
+      </div>
       <div class="listing-grid" id="listingGrid" aria-live="polite"></div>
     </section>
 
     <section class="wrap voice-band" aria-labelledby="voiceTitle">
       <div class="voice-copy">
-        <span class="section-kicker">Parlez, c'est réservé</span>
-        <h2 id="voiceTitle">Un vocal suffit pour démarrer.</h2>
-        <p>Pas besoin d'écrire. Envoyez un message vocal à Machinati sur WhatsApp, en français ou en darija. Nous trouvons une coopérative partenaire et coordonnons votre location.</p>
-        <button class="button button-primary voice-cta" type="button" data-whatsapp="voice">Continuer sur WhatsApp par vocal <span aria-hidden="true">→</span></button>
+        <span class="section-kicker">WhatsApp</span>
+        <h2 id="voiceTitle">Décrivez votre besoin.</h2>
+        <p>Écrivez ou envoyez un vocal en français ou en darija.</p>
+        <button class="button button-primary voice-cta" type="button" data-whatsapp="voice">Faire une demande <span aria-hidden="true">→</span></button>
       </div>
       <div class="voice-visual" aria-label="Aperçu d'un échange vocal sur WhatsApp">
         <div class="phone-card">
@@ -374,18 +422,18 @@
         <div class="iot-copy">
           <span class="section-kicker">La confiance, ça se mesure</span>
           <h2 id="iotTitle">Chaque heure compte. <em>Vraiment.</em></h2>
-          <p>Le suivi des heures, de la localisation et de l'entretien sera disponible lorsque les données des boîtiers connectés seront intégrées au backend.</p>
+            <p>Les données apparaîtront dès que les machines transmettront leur télémétrie.</p>
           <ul class="iot-points">
-            <li><span class="iot-check">·</span> Relevés moteur non disponibles</li>
-            <li><span class="iot-check">·</span> Localisation non disponible</li>
-            <li><span class="iot-check">·</span> Alertes d'entretien non disponibles</li>
+            <li><span class="iot-check">·</span> Heures moteur</li>
+            <li><span class="iot-check">·</span> Localisation</li>
+            <li><span class="iot-check">·</span> Entretien</li>
           </ul>
         </div>
         <div class="iot-dashboard" aria-label="Disponibilité du suivi connecté">
           <div class="dash-head"><span class="dash-title">Suivi de la machine</span><span class="sensor-status">API IoT non disponible</span></div>
           <div class="dash-content">
             <div class="dash-machine"><span class="machine-thumb">▰</span><span><strong>Télémétrie</strong><span>Aucune source de données connectée</span></span></div>
-            <p class="chart-note">Les indicateurs apparaîtront ici lorsque le backend recevra les données IoT.</p>
+            <p class="chart-note">Aucune donnée disponible</p>
           </div>
         </div>
       </div>
@@ -394,9 +442,9 @@
     <section class="wrap section" id="fonctionnement" aria-labelledby="stepsTitle" style="padding-top:12px">
       <div class="section-head"><div><span class="section-kicker">Simple du premier vocal au dernier sillon</span><h2 id="stepsTitle">Comment ça <em>marche</em></h2></div></div>
       <div class="steps">
-        <article class="step"><span class="step-number">01</span><h3>Décrivez votre besoin</h3><p>Parcourez les offres des coopératives ou envoyez votre demande à Machinati sur WhatsApp.</p></article>
-        <article class="step"><span class="step-number">02</span><h3>Machinati coordonne la location</h3><p>La plateforme vérifie la disponibilité avec la coopérative partenaire et organise avec vous les dates et la remise.</p></article>
-        <article class="step"><span class="step-number">03</span><h3>Louez auprès d'une coopérative</h3><p>La coopérative fournit la machine. Les détails de disponibilité et de tarif sont confirmés directement avec elle.</p></article>
+        <article class="step"><span class="step-number">01</span><h3>Choisissez une machine</h3></article>
+        <article class="step"><span class="step-number">02</span><h3>Envoyez votre demande</h3></article>
+        <article class="step"><span class="step-number">03</span><h3>La coopérative confirme</h3></article>
       </div>
     </section>
 
@@ -544,6 +592,15 @@
         const bookingNote = modal.querySelector("#bookingForm .modal-footnote");
         if (machine && bookingNote) bookingNote.textContent = "Estimation indicative, hors transport. Machinati vérifie la disponibilité auprès de la coopérative partenaire et coordonne les modalités avec vous.";
       }
+      const machineDetails = modal.querySelector(".modal-machine strong + span");
+      if (machine && machineDetails) {
+        machineDetails.textContent = `${machine.city} · ${machine.hasPrice ? `${machine.price.toLocaleString("fr-FR")} MAD / h` : "Tarif à confirmer"}`;
+      }
+      const machineIntro = modal.querySelector(".modal-intro");
+      if (machine && machineIntro) machineIntro.textContent = "Indiquez les dates souhaitées. La disponibilité et le tarif final seront confirmés par la coopérative.";
+      const estimate = modal.querySelector(".estimate");
+      if (estimate) estimate.remove();
+
       backdrop.classList.add("open");
       document.body.style.overflow = "hidden";
       modal.querySelector(".modal-close").focus();
@@ -622,19 +679,11 @@
       document.getElementById("metricDistance").innerHTML = month ? "84 <small>km</small>" : "18 <small>km</small>";
       document.getElementById("metricService").innerHTML = month ? "4 <small>h</small>" : "12 <small>h</small>";
     }));
-      const machineDetails = modal.querySelector(".modal-machine strong + span");
-      if (machine && machineDetails) {
-        machineDetails.textContent = `${machine.city} · ${machine.hasPrice ? `${machine.price.toLocaleString("fr-FR")} MAD / h` : "Tarif à confirmer"}`;
-      }
-      const machineIntro = modal.querySelector(".modal-intro");
-      if (machine && machineIntro) machineIntro.textContent = "Indiquez les dates souhaitées. La disponibilité et le tarif final seront confirmés par la coopérative.";
-      const estimate = modal.querySelector(".estimate");
-      if (estimate) estimate.remove();
 
     const mobileMenu = document.getElementById("mobileMenu");
     mobileMenu.addEventListener("click", () => {
       mobileMenu.setAttribute("aria-expanded", "false");
-    }));
+    });
     loadMachines();
   </script>
 </body>

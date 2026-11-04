@@ -37,8 +37,8 @@ class WebhookRegressionTests(unittest.IsolatedAsyncioTestCase):
         with patch.object(config,'VERIFY_TOKEN','test-verify-token'):
             response=main.verify_webhook(request(query=b'hub.mode=subscribe&hub.verify_token=test-verify-token&hub.challenge=challenge'))
             self.assertEqual(response.body,b'challenge')
-        self.assertTrue(any(r.path=='/webhook/whatsapp' and 'GET' in r.methods for r in main.app.routes))
-        self.assertTrue(any(r.path=='/webhook/whatsapp' and 'POST' in r.methods for r in main.app.routes))
+        self.assertTrue(any(getattr(r, 'path', None)=='/webhook/whatsapp' and 'GET' in r.methods for r in main.app.routes))
+        self.assertTrue(any(getattr(r, 'path', None)=='/webhook/whatsapp' and 'POST' in r.methods for r in main.app.routes))
 
 
 if __name__=='__main__': unittest.main()
