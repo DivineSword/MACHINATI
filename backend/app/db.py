@@ -47,7 +47,11 @@ def init_db():
         CREATE TABLE IF NOT EXISTS machines (
             id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL,
             machine_type TEXT NOT NULL, location TEXT, hourly_rate REAL,
-            available INTEGER NOT NULL DEFAULT 1
+            available INTEGER NOT NULL DEFAULT 1,
+            owner_type TEXT NOT NULL DEFAULT 'company',
+            reserved_for_own_use INTEGER NOT NULL DEFAULT 0,
+            available_from TEXT, available_to TEXT,
+            compatibility_notes TEXT
         );
         CREATE TABLE IF NOT EXISTS bookings (
             id INTEGER PRIMARY KEY AUTOINCREMENT, request_id INTEGER NOT NULL,
@@ -55,3 +59,14 @@ def init_db():
             status TEXT NOT NULL DEFAULT 'proposed'
         );
         """)
+        machine_columns = {row['name'] for row in con.execute('PRAGMA table_info(machines)')}
+        migrations = (
+            ('owner_type', "TEXT NOT NULL DEFAULT 'company'"),
+            ('reserved_for_own_use', 'INTEGER NOT NULL DEFAULT 0'),
+            ('available_from', 'TEXT'),
+            ('available_to', 'TEXT'),
+            ('compatibility_notes', 'TEXT'),
+        )
+        for name, definition in migrations:
+            if name not in machine_columns:
+                con.execute(f'ALTER TABLE machines ADD COLUMN {name} {definition}')

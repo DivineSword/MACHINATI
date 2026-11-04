@@ -5,6 +5,7 @@ from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from . import config
 from .db import init_db
+from .demo import seed_demo_data
 from .routes.machines import router as machines_router
 from .routes.requests import router as requests_router
 from .whatsapp import verify_signature
@@ -16,6 +17,8 @@ log = logging.getLogger("machinati")
 @asynccontextmanager
 async def lifespan(app):
     init_db()
+    if config.SEED_DEMO_DATA:
+        seed_demo_data()
     yield
 
 app = FastAPI(title="MACHINATI API", lifespan=lifespan)

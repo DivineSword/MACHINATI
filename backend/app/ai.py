@@ -25,10 +25,15 @@ class AgriculturalRequest(BaseModel):
     location: str | None = None
     preferred_date: date | None = None
     preferred_date_text: str | None = None
+    urgency_level: Literal['normal', 'urgent', 'critical'] | None = None
+    urgency_reason: str | None = None
+    urgent_window_start: str | None = None
+    urgent_window_end: str | None = None
     language: Literal['ary', 'ar', 'fr', 'other'] = 'other'
     notes: str | None = None
 
-    @field_validator('machine_type', 'operation', 'location', 'preferred_date_text', 'notes')
+    @field_validator('machine_type', 'operation', 'location', 'preferred_date_text',
+                     'urgency_reason', 'urgent_window_start', 'urgent_window_end', 'notes')
     @classmethod
     def clean_text(cls, value):
         return value.strip() or None if value is not None else None
@@ -106,6 +111,9 @@ Merge explicit facts from the previous draft; explicit corrections override them
 our questions so short answers can be associated with the field asked. Preserve unrelated facts.
 For relative/ambiguous dates preserve preferred_date_text and leave preferred_date null.
 Use ISO YYYY-MM-DD only for an unambiguous explicit full date. Keep original wording in notes.
+Capture urgency only when the farmer explicitly states it: normal for flexible timing, urgent for
+an explicitly urgent need, and critical only when clearly stated. Preserve the reason and any
+explicit acceptable urgency window; never infer these values.
 Do not interpret an unrelated greeting as a machine request. Never confirm on the user's behalf."""
     result = await _generate(
         config.GEMINI_MODEL,

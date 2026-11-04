@@ -32,7 +32,9 @@ flowchart LR
 
 ### 3.2 Cooperative Dashboard
 
-- Review requests and their statuses.
+- Review requests and their statuses, including declared urgency and its justification.
+- Sort requests by a transparent demo score; a cooperative reviewer can explicitly validate urgent requests.
+- See available same-type machines, with reservations, date limits, exact locality matches, and transport/date checks shown separately.
 - Approve or reject requests through the backend API.
 - View the machine inventory returned by the API.
 
@@ -141,6 +143,8 @@ macOS / Linux:
 cp backend/.env.example backend/.env
 ```
 
+Set `SEED_DEMO_DATA=true` to load a focused harvest-priority scenario: one illustrative combine harvester and two requests, one urgent in Meknes and one flexible from Fes. Seeding removes the former `DEMO-FARMER-*` requests and known legacy demo machines, but preserves non-demo records.
+
 Never commit `.env` or expose the unauthenticated API publicly. The current backend does not yet authenticate cooperative users.
 
 ## 8. Tests
@@ -155,7 +159,8 @@ python -m unittest discover -s tests -v
 ## 9. Current Limitations
 
 - The backend API is unauthenticated and is not safe to expose publicly.
-- Requests can be reviewed, but a confirmed booking, scheduling, and availability checks are not implemented.
+- Priority scoring is a deterministic prototype based on declared urgency, human verification, request age, and inventory fit. Machine owner-use reservations and date limits are illustrative; locality matching does not establish travel feasibility or live availability.
+- Requests can be reviewed, but a confirmed booking, scheduling, and availability checks are not implemented. Urgency validation is a demo reviewer action, not authenticated identity verification.
 - Catalogue and operations pages still contain demonstration data.
 - WhatsApp and Gemini features require valid credentials in `backend/.env`.
 

@@ -7,25 +7,36 @@ from .db import connect
 from .ai import AIError, AgriculturalRequest, extract, transcribe
 from .whatsapp import download_media, send_text
 
-REQUIRED = ('machine_type', 'operation', 'area_hectares', 'location', 'preferred_date')
+REQUIRED = ('machine_type', 'operation', 'area_hectares', 'location', 'preferred_date', 'urgency_level')
 QUESTIONS = {
     'machine_type': 'شنو نوع الماكينة اللي محتاج؟',
     'operation': 'شنو الخدمة اللي باغي تدير؟',
     'area_hectares': 'شحال من هكتار عندك؟',
     'location': 'فين كاينة الأرض ديالك؟',
     'preferred_date': 'شنو التاريخ بالضبط؟ عافاك كتب النهار والشهر والسنة.',
+    'urgency_level': 'واش التوقيت مرن، مستعجل، ولا مستعجل بزاف؟',
+    'urgency_reason': 'علاش الطلب مستعجل؟ واش كاينة فترة محددة خاص الخدمة تدوز فيها؟',
 }
 # Serialize a farmer's overlapping webhooks in this single-worker MVP.
 _locks = defaultdict(asyncio.Lock)
 
 
 def summary(data):
-    return ('واش هاد المعلومات صحيحة؟ جاوب بـ نعم أو تعديل:\n'
+    return ('واش هاد المعلومات صحيحة؟ جاوب بـ نعم أو تعديل. الطلب غادي يبقى للمراجعة وماشي حجز مؤكد:\n'
             f"🚜 الماكينة: {data.get('machine_type') or '—'}\n"
             f"🌱 الخدمة: {data.get('operation') or '—'}\n"
             f"📐 المساحة: {data.get('area_hectares') or '—'} هكتار\n"
             f"📍 المكان: {data.get('location') or '—'}\n"
-            f"📅 التاريخ: {data.get('preferred_date') or data.get('preferred_date_text') or '—'}")
+            f"📅 التاريخ: {data.get('preferred_date') or data.get('preferred_date_text') or '—'}\n"
+            f"⏱️ الاستعجال: {data.get('urgency_level') or '—'}\n"
+            f"📝 السبب: {data.get('urgency_reason') or 'ما تحددش'}")
+
+
+def missing_fields(data):
+    missing = [key for key in REQUIRED if data.get(key) is None]
+    if data.get('urgency_level') in ('urgent', 'critical') and not data.get('urgency_reason'):
+        missing.append('urgency_reason')
+    return missing
 
 
 def is_confirmation(text):
@@ -98,7 +109,7 @@ async def _handle_message(msg, phone, msg_id):
         if is_confirmation(text):
             if old and awaiting:
                 data = AgriculturalRequest.model_validate(old).model_dump(mode='json')
-                missing = [key for key in REQUIRED if data.get(key) is None]
+                missing = missing_fields(data)
                 if data['intent'] != 'request_machine':
                     missing = ['machine_type']
                 if missing:
@@ -118,7 +129,7 @@ async def _handle_message(msg, phone, msg_id):
                     return
             elif old:
                 old = AgriculturalRequest.model_validate(old).model_dump(mode='json')
-                missing = [key for key in REQUIRED if not old.get(key)]
+                missing = missing_fields(old)
                 reply = QUESTIONS[missing[0]] if missing else summary(old)
                 with connect() as con:
                     con.execute('''INSERT INTO conversations(farmer_phone,payload,history)
@@ -135,7 +146,7 @@ async def _handle_message(msg, phone, msg_id):
             if data['intent'] != 'request_machine' and not old:
                 reply = 'مرحبا بك فـ نوبة! شنو نوع الماكينة اللي محتاج؟'
             else:
-                missing = [key for key in REQUIRED if data.get(key) is None]
+                missing = missing_fields(data)
                 reply = QUESTIONS[missing[0]] if missing else summary(data)
                 history = (history + [{'role': 'user', 'text': text}, {'role': 'assistant', 'text': reply}])[-20:]
                 with connect() as con:

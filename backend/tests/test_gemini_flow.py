@@ -14,7 +14,8 @@ from pydantic import ValidationError
 from app import ai, config, db, service
 
 FULL = dict(intent='request_machine', machine_type='تراكتور', operation='الحرث',
-            area_hectares=2, location='دكالة', preferred_date='2027-02-10', language='ary')
+            area_hectares=2, location='دكالة', preferred_date='2027-02-10', language='ary',
+            urgency_level='normal')
 
 
 class SchemaTests(unittest.TestCase):
@@ -27,7 +28,8 @@ class SchemaTests(unittest.TestCase):
     def test_invalid_json_fields_and_dates(self):
         for change in [{'preferred_date':'2027-02-30'}, {'area_hectares':-1},
                        {'area_hectares':float('nan')}, {'area_hectares':True},
-                       {'location':{'invented':'object'}}, {'price':100}, {'intent':'confirmed'}]:
+                       {'location':{'invented':'object'}}, {'urgency_level':'immediate'},
+                       {'price':100}, {'intent':'confirmed'}]:
             with self.subTest(change=change), self.assertRaises(ValidationError):
                 ai.AgriculturalRequest(**(FULL | change))
 
@@ -97,6 +99,22 @@ class FlowTests(unittest.IsolatedAsyncioTestCase):
         with db.connect() as con:
             payload=json.loads(con.execute('SELECT payload FROM requests').fetchone()[0])
         self.assertEqual(payload['area_hectares'],3)
+
+    async def test_urgent_request_requires_reason_before_confirmation(self):
+        urgent = FULL | {'urgency_level': 'urgent'}
+        self.extract.return_value = ai.AgriculturalRequest(**urgent).model_dump(mode='json')
+        await service.handle_message(self.msg('one'))
+        self.assertEqual(self.send.call_args.args[1], service.QUESTIONS['urgency_reason'])
+        self.assertEqual(self.count(), 0)
+
+        urgent['urgency_reason'] = 'الحصاد قريب'
+        self.extract.return_value = ai.AgriculturalRequest(**urgent).model_dump(mode='json')
+        await service.handle_message(self.msg('two', 'الحصاد قريب'))
+        self.assertIn('واش هاد المعلومات صحيحة', self.send.call_args.args[1])
+        self.assertEqual(self.count(), 0)
+
+        await service.handle_message(self.msg('three', 'نعم'))
+        self.assertEqual(self.count(), 1)
 
     async def test_voice_download_transcription_and_extraction(self):
         msg={'id':'voice','from':'test-farmer','type':'audio','audio':{'id':'real-media-reference','mime_type':'audio/ogg; codecs=opus'}}

@@ -12,3 +12,4 @@ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "")
 GEMINI_STT_MODEL = os.getenv("GEMINI_STT_MODEL", "")
 DB_PATH = os.getenv("DB_PATH", "machinati.db")
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+SEED_DEMO_DATA = os.getenv("SEED_DEMO_DATA", "false").strip().lower() in {"1", "true", "yes", "on"}
